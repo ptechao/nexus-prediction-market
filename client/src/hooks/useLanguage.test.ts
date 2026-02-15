@@ -4,8 +4,8 @@ import { getLanguageName, getLanguageFlag, getBrowserLanguage } from './useLangu
 describe('Language Management', () => {
   it('should return correct language names', () => {
     expect(getLanguageName('en')).toBe('English');
-    expect(getLanguageName('zh-TW')).toBe('繁體中文');
-    expect(getLanguageName('es')).toBe('Español');
+    expect(getLanguageName('zh-TW')).toBe('Traditional Chinese');
+    expect(getLanguageName('es')).toBe('Spanish');
   });
 
   it('should return correct language flags', () => {

@@ -165,3 +165,11 @@
 - [x] Implement language switcher in navbar
 - [x] Create market title translation utility
 - [x] Test i18n functionality
+
+
+## Asia Market i18n Expansion
+- [x] Create zh-CN, ja, ko, th translation files
+- [x] Update language switcher with native names and flags
+- [x] Add Google Fonts for CJK and Thai character support
+- [x] Test all Asian language displays
+- [x] Verify character rendering across browsers
