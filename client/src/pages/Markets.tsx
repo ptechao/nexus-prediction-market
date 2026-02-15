@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Calendar, Users } from 'lucide-react';
+import { TrendingUp, TrendingDown, Calendar, Users, Flame } from 'lucide-react';
 
 interface Market {
   id: number;
@@ -17,12 +17,14 @@ interface Market {
   volume24h: number;
   status: string;
   image: string;
+  isTrending: boolean;
 }
 
 export default function Markets() {
   const [markets, setMarkets] = useState<Market[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
+  const [showTrendingOnly, setShowTrendingOnly] = useState(false);
 
   useEffect(() => {
     // Load mock data
@@ -41,9 +43,11 @@ export default function Markets() {
     loadMarkets();
   }, []);
 
-  const filteredMarkets = filter === 'all' 
-    ? markets 
-    : markets.filter(m => m.eventType === filter);
+  const filteredMarkets = markets.filter(m => {
+    const matchesEventType = filter === 'all' || m.eventType === filter;
+    const matchesTrending = !showTrendingOnly || m.isTrending;
+    return matchesEventType && matchesTrending;
+  });
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -89,42 +93,69 @@ export default function Markets() {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
-          <Button
-            variant={filter === 'all' ? 'default' : 'outline'}
-            onClick={() => setFilter('all')}
-            className="whitespace-nowrap"
-          >
-            All Markets
-          </Button>
-          <Button
-            variant={filter === 'sports' ? 'default' : 'outline'}
-            onClick={() => setFilter('sports')}
-            className="whitespace-nowrap"
-          >
-            Sports
-          </Button>
-          <Button
-            variant={filter === 'crypto' ? 'default' : 'outline'}
-            onClick={() => setFilter('crypto')}
-            className="whitespace-nowrap"
-          >
-            Crypto
-          </Button>
-          <Button
-            variant={filter === 'entertainment' ? 'default' : 'outline'}
-            onClick={() => setFilter('entertainment')}
-            className="whitespace-nowrap"
-          >
-            Entertainment
-          </Button>
-          <Button
-            variant={filter === 'finance' ? 'default' : 'outline'}
-            onClick={() => setFilter('finance')}
-            className="whitespace-nowrap"
-          >
-            Finance
-          </Button>
+        <div className="space-y-4 mb-8">
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            <Button
+              variant={filter === 'all' ? 'default' : 'outline'}
+              onClick={() => setFilter('all')}
+              className="whitespace-nowrap"
+            >
+              All Markets
+            </Button>
+            <Button
+              variant={filter === 'sports' ? 'default' : 'outline'}
+              onClick={() => setFilter('sports')}
+              className="whitespace-nowrap"
+            >
+              Sports
+            </Button>
+            <Button
+              variant={filter === 'crypto' ? 'default' : 'outline'}
+              onClick={() => setFilter('crypto')}
+              className="whitespace-nowrap"
+            >
+              Crypto
+            </Button>
+            <Button
+              variant={filter === 'entertainment' ? 'default' : 'outline'}
+              onClick={() => setFilter('entertainment')}
+              className="whitespace-nowrap"
+            >
+              Entertainment
+            </Button>
+            <Button
+              variant={filter === 'finance' ? 'default' : 'outline'}
+              onClick={() => setFilter('finance')}
+              className="whitespace-nowrap"
+            >
+              Finance
+            </Button>
+          </div>
+          
+          {/* Trending Markets Toggle */}
+          <div className="flex items-center gap-3 px-1 flex-wrap">
+            <Button
+              onClick={() => setShowTrendingOnly(!showTrendingOnly)}
+              className={`transition-all duration-300 flex items-center gap-2 ${
+                showTrendingOnly
+                  ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg scale-105'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-900'
+              }`}
+            >
+              <Flame className="w-4 h-4" />
+              <span className="font-semibold">Trending Markets</span>
+              {showTrendingOnly && (
+                <span className="ml-2 inline-flex items-center justify-center w-5 h-5 bg-white text-orange-500 rounded-full text-xs font-bold">
+                  ✓
+                </span>
+              )}
+            </Button>
+            {showTrendingOnly && (
+              <span className="text-sm text-slate-600 animate-pulse">
+                Showing {filteredMarkets.length} trending market{filteredMarkets.length !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Markets Grid */}
@@ -139,7 +170,11 @@ export default function Markets() {
             {filteredMarkets.map((market) => (
               <Card
                 key={market.id}
-                className="overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer group"
+                className={`overflow-hidden cursor-pointer group transition-all duration-300 ${
+                  market.isTrending
+                    ? 'hover:shadow-2xl hover:scale-105 border-2 border-orange-200 hover:border-orange-400'
+                    : 'hover:shadow-lg'
+                }`}
               >
                 {/* Market Image */}
                 <div className="relative h-48 overflow-hidden bg-slate-200">
@@ -148,7 +183,13 @@ export default function Markets() {
                     alt={market.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  <div className="absolute top-3 right-3">
+                  <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
+                    {market.isTrending && (
+                      <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg animate-bounce">
+                        <Flame className="w-3 h-3" />
+                        <span>Trending</span>
+                      </div>
+                    )}
                     <Badge className={getCategoryColor(market.category)}>
                       {market.category}
                     </Badge>
@@ -169,7 +210,7 @@ export default function Markets() {
 
                   {/* Odds Display */}
                   <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                    <div className="bg-green-50 rounded-lg p-3 border border-green-200 transition-all duration-300 group-hover:bg-green-100">
                       <div className="text-xs text-slate-600 mb-1">Yes Odds</div>
                       <div className="flex items-center gap-1">
                         <TrendingUp className="w-4 h-4 text-green-600" />
@@ -178,7 +219,7 @@ export default function Markets() {
                         </span>
                       </div>
                     </div>
-                    <div className="bg-red-50 rounded-lg p-3 border border-red-200">
+                    <div className="bg-red-50 rounded-lg p-3 border border-red-200 transition-all duration-300 group-hover:bg-red-100">
                       <div className="text-xs text-slate-600 mb-1">No Odds</div>
                       <div className="flex items-center gap-1">
                         <TrendingDown className="w-4 h-4 text-red-600" />
@@ -213,7 +254,11 @@ export default function Markets() {
 
                   {/* Action Button */}
                   <Button
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold"
+                    className={`w-full font-semibold transition-all duration-300 ${
+                      market.isTrending
+                        ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white'
+                        : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
+                    }`}
                   >
                     Place Bet
                   </Button>
@@ -226,8 +271,11 @@ export default function Markets() {
         {/* Empty State */}
         {!loading && filteredMarkets.length === 0 && (
           <div className="text-center py-12">
+            <Flame className="w-12 h-12 text-slate-400 mx-auto mb-4" />
             <p className="text-lg text-slate-600">
-              No markets found for this filter
+              {showTrendingOnly 
+                ? 'No trending markets found for this filter' 
+                : 'No markets found for this filter'}
             </p>
           </div>
         )}

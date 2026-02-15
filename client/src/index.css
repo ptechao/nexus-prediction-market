@@ -175,3 +175,98 @@
     }
   }
 }
+
+/* Trending Markets Animations */
+@keyframes gentle-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(249, 115, 22, 0.5);
+  }
+}
+
+@keyframes trending-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.trending-glow {
+  animation: gentle-glow 2s ease-in-out infinite;
+}
+
+.trending-pulse {
+  animation: trending-pulse 2s ease-in-out infinite;
+}
+
+.slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.fade-in-up {
+  animation: fade-in-up 0.3s ease-out;
+}
+
+/* Trending Card Hover Effects */
+.trending-card {
+  @apply transition-all duration-300;
+}
+
+.trending-card:hover {
+  @apply shadow-2xl;
+}
+
+/* Trending Badge Styles */
+.trending-badge {
+  @apply bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg;
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* Trending Filter Button */
+.trending-filter-btn {
+  @apply transition-all duration-300;
+}
+
+.trending-filter-btn.active {
+  @apply scale-105 shadow-lg;
+}
+
+/* Market Card Animations */
+.market-card-enter {
+  animation: fade-in-up 0.3s ease-out;
+}
+
+/* Responsive Trending Indicator */
+@media (max-width: 640px) {
+  .trending-badge {
+    @apply text-xs px-2 py-0.5;
+  }
+}

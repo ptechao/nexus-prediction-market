@@ -55,3 +55,11 @@
 - [ ] Test wallet connection flow
 - [ ] Test betting transaction flow
 - [ ] Prepare deployment documentation
+
+## Market List Enhancements
+- [x] Add "Trending Markets" filter tag to Markets page
+- [x] Update mockData.json to mark trending markets
+- [x] Implement trending market filtering logic
+- [x] Add trending badge/icon to market cards
+- [x] Implement UI response effects and animations
+- [x] Add hover effects and transitions
