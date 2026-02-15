@@ -107,6 +107,7 @@
 
 ## Bug Fixes
 - [x] Fix "process is not defined" error in web3Config.ts
+- [x] Fix nested <a> tag error on homepage (React DOM validation error)
 
 
 ## Phase 2: Smart Contract Integration

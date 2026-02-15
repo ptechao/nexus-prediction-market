@@ -26,20 +26,16 @@ export default function Home() {
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/markets">
-                  <a className="inline-block">
-                    <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-6 px-8 text-lg flex items-center justify-center gap-2">
-                      Explore Markets
-                      <ArrowRight className="w-5 h-5" />
-                    </Button>
-                  </a>
+                <Link href="/markets" className="inline-block">
+                  <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-6 px-8 text-lg flex items-center justify-center gap-2">
+                    Explore Markets
+                    <ArrowRight className="w-5 h-5" />
+                  </Button>
                 </Link>
-                <Link href="/leaderboard">
-                  <a className="inline-block">
-                    <Button variant="outline" className="w-full sm:w-auto border-slate-300 text-slate-900 font-semibold py-6 px-8 text-lg">
-                      View Top Traders
-                    </Button>
-                  </a>
+                <Link href="/leaderboard" className="inline-block">
+                  <Button variant="outline" className="w-full sm:w-auto border-slate-300 text-slate-900 font-semibold py-6 px-8 text-lg">
+                    View Top Traders
+                  </Button>
                 </Link>
               </div>
 
@@ -210,12 +206,10 @@ export default function Home() {
           <p className="text-xl text-blue-100 mb-8">
             Join thousands of traders on NEXUS and start earning returns today.
           </p>
-          <Link href="/markets">
-            <a className="inline-block">
-              <Button className="bg-white text-blue-600 hover:bg-blue-50 font-semibold py-6 px-8 text-lg">
-                Explore Markets Now
-              </Button>
-            </a>
+          <Link href="/markets" className="inline-block">
+            <Button className="bg-white text-blue-600 hover:bg-blue-50 font-semibold py-6 px-8 text-lg">
+              Explore Markets Now
+            </Button>
           </Link>
         </div>
       </section>
