@@ -111,6 +111,12 @@
 - [x] Hotfix: Force display hardcoded mock market data on Markets page
 - [x] Hotfix: Make homepage directly render MarketList with mock data cards
 - [x] Hotfix: Switch to dark crypto theme and ensure cards render unconditionally
+- [x] Create server-side Polymarket API fetch utility
+- [x] Add tRPC procedure for fetching live market data
+- [x] Map Polymarket API response to Market interface
+- [x] Update Home.tsx to fetch live data with loading/error/fallback
+- [x] Update Markets.tsx to fetch live data with loading/error/fallback
+- [x] Add tests for Polymarket integration
 
 
 ## Phase 2: Smart Contract Integration

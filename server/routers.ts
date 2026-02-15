@@ -2,6 +2,8 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
+import { z } from "zod";
+import { fetchTopMarkets, fetchMarketsByTag } from "./polymarket";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -17,12 +19,25 @@ export const appRouter = router({
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  markets: router({
+    /** Fetch top markets by volume from Polymarket */
+    top: publicProcedure
+      .input(z.object({ limit: z.number().min(1).max(50).default(10) }).optional())
+      .query(async ({ input }) => {
+        const limit = input?.limit ?? 10;
+        return fetchTopMarkets(limit);
+      }),
+
+    /** Fetch markets filtered by tag */
+    byTag: publicProcedure
+      .input(z.object({
+        tag: z.string(),
+        limit: z.number().min(1).max(50).default(10),
+      }))
+      .query(async ({ input }) => {
+        return fetchMarketsByTag(input.tag, input.limit);
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
