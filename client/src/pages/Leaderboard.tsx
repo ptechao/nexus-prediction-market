@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Trophy, TrendingUp, Users, Target } from 'lucide-react';
+import { Trophy, TrendingUp, Users, Target, Zap, CheckCircle } from 'lucide-react';
+import CopyTradingModal from '@/components/CopyTradingModal';
+import { toast } from 'sonner';
 
 interface Leader {
   id: number;
@@ -22,6 +24,9 @@ export default function Leaderboard() {
   const [leaders, setLeaders] = useState<Leader[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'roi' | 'winRate' | 'followers'>('roi');
+  const [selectedLeader, setSelectedLeader] = useState<Leader | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [followingLeaders, setFollowingLeaders] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     // Load mock data
@@ -30,6 +35,11 @@ export default function Leaderboard() {
         const response = await fetch('/mockData.json');
         const data = await response.json();
         setLeaders(data.leaders);
+        // Load following status from localStorage
+        const saved = localStorage.getItem('followingLeaders');
+        if (saved) {
+          setFollowingLeaders(new Set(JSON.parse(saved)));
+        }
       } catch (error) {
         console.error('Failed to load leaders:', error);
       } finally {
@@ -81,6 +91,39 @@ export default function Leaderboard() {
     return labels[badge] || badge;
   };
 
+  const handleCopyTrading = (leader: Leader) => {
+    setSelectedLeader(leader);
+    setModalOpen(true);
+  };
+
+  const handleConfirmCopyTrading = async (amount: number) => {
+    if (!selectedLeader) return;
+
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Update following status
+      const newFollowing = new Set(followingLeaders);
+      newFollowing.add(selectedLeader.id);
+      setFollowingLeaders(newFollowing);
+      localStorage.setItem('followingLeaders', JSON.stringify(Array.from(newFollowing)));
+
+      // Show success toast
+      toast.success(`Now following ${selectedLeader.name}!`, {
+        description: `Deposited $${amount.toLocaleString()} into their vault`,
+        duration: 4000,
+      });
+    } catch (error) {
+      toast.error('Failed to complete copy trading', {
+        description: error instanceof Error ? error.message : 'Please try again',
+      });
+      throw error;
+    }
+  };
+
+  const isFollowing = (leaderId: number) => followingLeaders.has(leaderId);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
@@ -98,7 +141,7 @@ export default function Leaderboard() {
         </div>
 
         {/* Sort Controls */}
-        <div className="flex gap-2 mb-8">
+        <div className="flex gap-2 mb-8 flex-wrap">
           <Button
             variant={sortBy === 'roi' ? 'default' : 'outline'}
             onClick={() => setSortBy('roi')}
@@ -137,7 +180,11 @@ export default function Leaderboard() {
             {sortedLeaders.map((leader, index) => (
               <Card
                 key={leader.id}
-                className="overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+                className={`overflow-hidden transition-all duration-300 cursor-pointer ${
+                  isFollowing(leader.id)
+                    ? 'hover:shadow-xl border-2 border-green-200 hover:border-green-400 bg-gradient-to-r from-green-50 to-transparent'
+                    : 'hover:shadow-lg'
+                }`}
               >
                 <div className="p-6">
                   <div className="flex items-center gap-6">
@@ -151,19 +198,33 @@ export default function Leaderboard() {
                     {/* Leader Info */}
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <img
-                          src={leader.avatar}
-                          alt={leader.name}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                        <div>
-                          <div className="flex items-center gap-2">
+                        <div className="relative">
+                          <img
+                            src={leader.avatar}
+                            alt={leader.name}
+                            className={`w-12 h-12 rounded-full object-cover transition-all duration-300 ${
+                              isFollowing(leader.id) ? 'ring-2 ring-green-500' : ''
+                            }`}
+                          />
+                          {isFollowing(leader.id) && (
+                            <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1">
+                              <CheckCircle className="w-4 h-4 text-white" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="text-lg font-semibold text-slate-900">
                               {leader.name}
                             </h3>
                             <span className="text-sm text-slate-500">
                               {leader.handle}
                             </span>
+                            {isFollowing(leader.id) && (
+                              <Badge className="bg-green-100 text-green-800 ml-auto md:ml-0">
+                                ✓ Following
+                              </Badge>
+                            )}
                           </div>
                           <p className="text-sm text-slate-600">
                             {leader.description}
@@ -172,7 +233,7 @@ export default function Leaderboard() {
                       </div>
 
                       {/* Badges */}
-                      <div className="flex gap-2 mb-3">
+                      <div className="flex gap-2 mb-3 flex-wrap">
                         {leader.badges.map((badge) => (
                           <Badge
                             key={badge}
@@ -185,7 +246,7 @@ export default function Leaderboard() {
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-4 gap-6 flex-shrink-0">
+                    <div className="grid grid-cols-4 gap-4 flex-shrink-0 md:gap-6">
                       <div className="text-center">
                         <div className="text-xs text-slate-600 mb-1">ROI</div>
                         <div className="text-2xl font-bold text-green-600">
@@ -215,9 +276,24 @@ export default function Leaderboard() {
                     {/* Action Button */}
                     <div className="flex-shrink-0">
                       <Button
-                        className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold"
+                        onClick={() => handleCopyTrading(leader)}
+                        className={`font-semibold transition-all duration-300 flex items-center gap-2 ${
+                          isFollowing(leader.id)
+                            ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white'
+                            : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
+                        }`}
                       >
-                        Copy Trade
+                        {isFollowing(leader.id) ? (
+                          <>
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Following</span>
+                          </>
+                        ) : (
+                          <>
+                            <Zap className="w-4 h-4" />
+                            <span>Copy Trade</span>
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -228,6 +304,11 @@ export default function Leaderboard() {
                       Vault Size: <span className="font-semibold text-slate-900">
                         ${(leader.vaultSize / 1000000).toFixed(1)}M
                       </span>
+                      {isFollowing(leader.id) && (
+                        <span className="ml-4 text-green-600">
+                          • You are following this trader
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -245,6 +326,14 @@ export default function Leaderboard() {
           </div>
         )}
       </div>
+
+      {/* Copy Trading Modal */}
+      <CopyTradingModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        leader={selectedLeader}
+        onConfirm={handleConfirmCopyTrading}
+      />
     </div>
   );
 }

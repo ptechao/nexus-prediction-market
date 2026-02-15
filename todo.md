@@ -63,3 +63,14 @@
 - [x] Add trending badge/icon to market cards
 - [x] Implement UI response effects and animations
 - [x] Add hover effects and transitions
+
+
+## Social Copy Trading Features
+- [x] Create CopyTradingModal component for deposit and follow
+- [x] Add "Copy Trading" button to leaderboard trader rows
+- [x] Implement copy trading state management (following status)
+- [x] Add visual indicators for followed traders
+- [x] Implement deposit amount input validation
+- [x] Add success/error notifications for copy trading actions
+- [ ] Create copy trading history display
+- [x] Add animations and transitions for copy trading UI

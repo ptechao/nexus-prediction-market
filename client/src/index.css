@@ -270,3 +270,100 @@
     @apply text-xs px-2 py-0.5;
   }
 }
+
+
+/* Copy Trading Animations */
+@keyframes follow-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+@keyframes check-mark-appear {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(-45deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes vault-highlight {
+  0%, 100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(34, 197, 94, 0.1);
+  }
+}
+
+@keyframes success-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.follow-pulse {
+  animation: follow-pulse 2s ease-in-out infinite;
+}
+
+.check-mark-appear {
+  animation: check-mark-appear 0.4s ease-out;
+}
+
+.vault-highlight {
+  animation: vault-highlight 2s ease-in-out infinite;
+}
+
+.success-bounce {
+  animation: success-bounce 0.6s ease-out;
+}
+
+/* Following Card Styles */
+.following-card {
+  @apply transition-all duration-300;
+}
+
+.following-card.active {
+  @apply border-green-300 shadow-green-200;
+}
+
+/* Copy Trading Button Styles */
+.copy-trading-btn {
+  @apply transition-all duration-300;
+}
+
+.copy-trading-btn.following {
+  @apply bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700;
+}
+
+.copy-trading-btn.not-following {
+  @apply bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800;
+}
+
+/* Leader Avatar Ring */
+.leader-avatar-following {
+  @apply ring-2 ring-green-500 transition-all duration-300;
+}
+
+/* Modal Success Animation */
+.modal-success {
+  animation: success-bounce 0.6s ease-out;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .follow-pulse {
+    animation: follow-pulse 1.5s ease-in-out infinite;
+  }
+}
