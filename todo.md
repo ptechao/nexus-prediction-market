@@ -107,3 +107,25 @@
 
 ## Bug Fixes
 - [x] Fix "process is not defined" error in web3Config.ts
+
+
+## Phase 2: Smart Contract Integration
+- [x] Create useNexus.ts custom hook for contract interaction
+- [x] Implement BinaryMarket read functions (odds, title, pool sizes)
+- [x] Implement CopyTradingVault read functions (NAV, total assets, followers)
+- [x] Implement deposit function for copy trading
+- [x] Implement buyYes/buyNo functions for betting
+- [x] Create Leaderboard page with vault listing
+- [x] Implement copy trading modal with USDC approval
+- [ ] Create Market List page with market cards
+- [ ] Implement betting modal for market interaction
+- [ ] Add real-time contract data updates
+
+
+## useNexus Write Functions Implementation
+- [x] Implement depositToVault with useWriteContract
+- [x] Implement approveUsdc with useWriteContract
+- [x] Implement buyYes with useWriteContract
+- [x] Implement buyNo with useWriteContract
+- [x] Add transaction confirmation handling
+- [x] Add error handling and retry logic
