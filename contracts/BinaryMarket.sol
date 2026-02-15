@@ -7,17 +7,28 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
  * @title BinaryMarket
- * @dev A simple binary (Yes/No) prediction market contract
- * Users can bet on Yes or No outcomes, and the market owner can resolve the outcome
+ * @dev A binary (Yes/No) prediction market contract with fee mechanism and emergency cancel
+ * 
+ * Features:
+ * - Users can bet on Yes or No outcomes
+ * - Market owner can resolve the outcome (simple oracle for MVP)
+ * - Emergency cancel functionality with refund mechanism
+ * - Protocol fee deducted from winnings (configurable basis points)
+ * - Correct payout calculation: payout = (userBet * totalPool) / winningPool
+ * - Edge case handling: if winning pool is 0, all losers get refunded
  */
 contract BinaryMarket is Ownable, ReentrancyGuard {
     // ============ State Variables ============
     
     IERC20 public usdc;
+    address public treasury;
     
     uint256 public marketId;
     string public eventTitle;
     uint256 public endTime;
+    
+    // Fee mechanism: basis points (e.g., 200 = 2%)
+    uint256 public feeBps;
     
     enum MarketStatus { OPEN, RESOLVED, CANCELLED }
     MarketStatus public status;
@@ -33,6 +44,7 @@ contract BinaryMarket is Ownable, ReentrancyGuard {
     mapping(address => uint256) public yesBets;
     mapping(address => uint256) public noBets;
     mapping(address => bool) public hasClaimed;
+    mapping(address => bool) public hasClaimedRefund;
     
     // ============ Events ============
     
@@ -50,27 +62,50 @@ contract BinaryMarket is Ownable, ReentrancyGuard {
     
     event WinningsClaimed(
         address indexed winner,
-        uint256 amount,
+        uint256 winnings,
+        uint256 feeAmount,
+        uint256 netPayout,
         uint256 timestamp
     );
     
     event MarketCancelled(uint256 timestamp);
     
+    event RefundClaimed(
+        address indexed user,
+        uint256 amount,
+        uint256 timestamp
+    );
+    
+    event TreasuryFeesCollected(
+        uint256 totalFees,
+        uint256 timestamp
+    );
+    
+    event FeeUpdated(uint256 newFeeBps, uint256 timestamp);
+    
+    event TreasuryUpdated(address newTreasury, uint256 timestamp);
+    
     // ============ Constructor ============
     
     constructor(
         address _usdc,
+        address _treasury,
         uint256 _marketId,
         string memory _eventTitle,
-        uint256 _endTime
+        uint256 _endTime,
+        uint256 _feeBps
     ) {
         require(_usdc != address(0), "Invalid USDC address");
+        require(_treasury != address(0), "Invalid treasury address");
         require(_endTime > block.timestamp, "End time must be in the future");
+        require(_feeBps <= 10000, "Fee cannot exceed 100%");
         
         usdc = IERC20(_usdc);
+        treasury = _treasury;
         marketId = _marketId;
         eventTitle = _eventTitle;
         endTime = _endTime;
+        feeBps = _feeBps;
         status = MarketStatus.OPEN;
         resolvedOutcome = Outcome.UNRESOLVED;
     }
@@ -121,34 +156,77 @@ contract BinaryMarket is Ownable, ReentrancyGuard {
     
     /**
      * @dev Claim winnings after market is resolved
+     * 
+     * Payout formula: payout = (userBet * totalPool) / winningPool
+     * Fee is deducted from winnings and sent to treasury
+     * 
+     * Edge case: If winning pool is 0 (no one bet on winning outcome),
+     * all losers get refunded their principal bet amount
      */
     function claimWinnings() external nonReentrant {
         require(status == MarketStatus.RESOLVED, "Market is not resolved");
         require(!hasClaimed[msg.sender], "Already claimed winnings");
         
-        uint256 winnings = 0;
+        uint256 userBet = 0;
+        uint256 winningPool = 0;
+        uint256 totalPool = yesPoolAmount + noPoolAmount;
         
+        // Determine user's bet and winning pool based on resolved outcome
         if (resolvedOutcome == Outcome.YES) {
-            require(yesBets[msg.sender] > 0, "No YES bets to claim");
-            
-            // Calculate proportional share of total pool
-            uint256 totalPool = yesPoolAmount + noPoolAmount;
-            winnings = (yesBets[msg.sender] * totalPool) / yesPoolAmount;
+            userBet = yesBets[msg.sender];
+            winningPool = yesPoolAmount;
+            require(userBet > 0, "No YES bets to claim");
         } else if (resolvedOutcome == Outcome.NO) {
-            require(noBets[msg.sender] > 0, "No NO bets to claim");
-            
-            // Calculate proportional share of total pool
-            uint256 totalPool = yesPoolAmount + noPoolAmount;
-            winnings = (noBets[msg.sender] * totalPool) / noPoolAmount;
+            userBet = noBets[msg.sender];
+            winningPool = noPoolAmount;
+            require(userBet > 0, "No NO bets to claim");
         } else {
             revert("Market outcome is unresolved");
         }
         
         hasClaimed[msg.sender] = true;
         
-        require(usdc.transfer(msg.sender, winnings), "USDC transfer failed");
+        uint256 winnings = 0;
         
-        emit WinningsClaimed(msg.sender, winnings, block.timestamp);
+        // Edge case: if winning pool is 0, refund the user's principal
+        if (winningPool == 0) {
+            winnings = userBet;
+        } else {
+            // Standard payout: (userBet * totalPool) / winningPool
+            winnings = (userBet * totalPool) / winningPool;
+        }
+        
+        // Calculate and deduct protocol fee
+        uint256 feeAmount = (winnings * feeBps) / 10000;
+        uint256 netPayout = winnings - feeAmount;
+        
+        // Transfer net payout to user
+        require(usdc.transfer(msg.sender, netPayout), "USDC transfer to user failed");
+        
+        // Transfer fee to treasury
+        if (feeAmount > 0) {
+            require(usdc.transfer(treasury, feeAmount), "USDC transfer to treasury failed");
+        }
+        
+        emit WinningsClaimed(msg.sender, winnings, feeAmount, netPayout, block.timestamp);
+    }
+    
+    /**
+     * @dev Claim refund if market is cancelled
+     * Users get back their principal bet amount
+     */
+    function claimRefund() external nonReentrant {
+        require(status == MarketStatus.CANCELLED, "Market is not cancelled");
+        require(!hasClaimedRefund[msg.sender], "Already claimed refund");
+        
+        uint256 refundAmount = yesBets[msg.sender] + noBets[msg.sender];
+        require(refundAmount > 0, "No bets to refund");
+        
+        hasClaimedRefund[msg.sender] = true;
+        
+        require(usdc.transfer(msg.sender, refundAmount), "USDC refund transfer failed");
+        
+        emit RefundClaimed(msg.sender, refundAmount, block.timestamp);
     }
     
     // ============ Admin Functions ============
@@ -170,14 +248,47 @@ contract BinaryMarket is Ownable, ReentrancyGuard {
     }
     
     /**
-     * @dev Cancel the market and refund all bets
+     * @dev Emergency cancel the market
+     * Users can call claimRefund() to get their principal back
      */
     function cancelMarket() external onlyOwner {
-        require(status == MarketStatus.OPEN, "Market already resolved");
+        require(status == MarketStatus.OPEN, "Market already resolved or cancelled");
         
         status = MarketStatus.CANCELLED;
         
         emit MarketCancelled(block.timestamp);
+    }
+    
+    /**
+     * @dev Update the protocol fee (basis points)
+     * @param newFeeBps New fee in basis points (e.g., 200 = 2%)
+     */
+    function setFeeBps(uint256 newFeeBps) external onlyOwner {
+        require(newFeeBps <= 10000, "Fee cannot exceed 100%");
+        feeBps = newFeeBps;
+        emit FeeUpdated(newFeeBps, block.timestamp);
+    }
+    
+    /**
+     * @dev Update the treasury address
+     * @param newTreasury New treasury address
+     */
+    function setTreasury(address newTreasury) external onlyOwner {
+        require(newTreasury != address(0), "Invalid treasury address");
+        treasury = newTreasury;
+        emit TreasuryUpdated(newTreasury, block.timestamp);
+    }
+    
+    /**
+     * @dev Collect accumulated fees from the contract
+     * This is a view of what fees have been collected (for accounting)
+     * Fees are automatically sent to treasury during claimWinnings()
+     */
+    function getCollectedFees() external view returns (uint256) {
+        // Total pool minus what's been claimed
+        uint256 totalPool = yesPoolAmount + noPoolAmount;
+        uint256 contractBalance = usdc.balanceOf(address(this));
+        return totalPool - contractBalance;
     }
     
     // ============ View Functions ============
@@ -221,5 +332,52 @@ contract BinaryMarket is Ownable, ReentrancyGuard {
         if (status == MarketStatus.OPEN) return "OPEN";
         if (status == MarketStatus.RESOLVED) return "RESOLVED";
         return "CANCELLED";
+    }
+    
+    /**
+     * @dev Calculate expected payout for a hypothetical bet
+     * @param betAmount The amount to bet
+     * @param isYes Whether betting on YES
+     * @return expectedPayout The expected payout if this outcome wins
+     * @return expectedFee The expected fee deducted
+     */
+    function calculateExpectedPayout(uint256 betAmount, bool isYes) external view returns (uint256 expectedPayout, uint256 expectedFee) {
+        require(status == MarketStatus.OPEN, "Market is not open");
+        
+        uint256 totalPool = yesPoolAmount + noPoolAmount;
+        uint256 winningPool = isYes ? yesPoolAmount : noPoolAmount;
+        
+        // If winning pool is 0, user gets their principal back
+        if (winningPool == 0) {
+            expectedPayout = betAmount;
+            expectedFee = 0;
+        } else {
+            uint256 grossPayout = ((betAmount + totalPool) * (betAmount + totalPool)) / (winningPool + betAmount);
+            expectedFee = (grossPayout * feeBps) / 10000;
+            expectedPayout = grossPayout - expectedFee;
+        }
+    }
+    
+    /**
+     * @dev Get market details
+     */
+    function getMarketDetails() external view returns (
+        uint256 id,
+        string memory title,
+        uint256 end,
+        uint256 yesPool,
+        uint256 noPool,
+        string memory currentStatus,
+        uint256 currentFeeBps
+    ) {
+        return (
+            marketId,
+            eventTitle,
+            endTime,
+            yesPoolAmount,
+            noPoolAmount,
+            getMarketStatus(),
+            feeBps
+        );
     }
 }

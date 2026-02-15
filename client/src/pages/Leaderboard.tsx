@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'wouter';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Trophy, TrendingUp, Users, Target, Zap, CheckCircle } from 'lucide-react';
+import { Trophy, TrendingUp, Users, Target, Zap, CheckCircle, Eye } from 'lucide-react';
 import CopyTradingModal from '@/components/CopyTradingModal';
 import { toast } from 'sonner';
 
@@ -18,9 +19,13 @@ interface Leader {
   vaultSize: number;
   description: string;
   badges: string[];
+  navPerShare?: number;
+  totalAssets?: number;
+  performanceFee?: number;
 }
 
 export default function Leaderboard() {
+  const [, setLocation] = useLocation();
   const [leaders, setLeaders] = useState<Leader[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'roi' | 'winRate' | 'followers'>('roi');
@@ -34,7 +39,14 @@ export default function Leaderboard() {
       try {
         const response = await fetch('/mockData.json');
         const data = await response.json();
-        setLeaders(data.leaders);
+        // Add vault stats to leaders
+        const leadersWithVault = data.leaders.map((leader: Leader) => ({
+          ...leader,
+          navPerShare: 12.5 + Math.random() * 2,
+          totalAssets: leader.vaultSize * (0.8 + Math.random() * 0.4),
+          performanceFee: leader.vaultSize * 0.02 * Math.random(),
+        }));
+        setLeaders(leadersWithVault);
         // Load following status from localStorage
         const saved = localStorage.getItem('followingLeaders');
         if (saved) {
@@ -273,8 +285,17 @@ export default function Leaderboard() {
                       </div>
                     </div>
 
-                    {/* Action Button */}
-                    <div className="flex-shrink-0">
+                    {/* Action Buttons */}
+                    <div className="flex-shrink-0 flex gap-2">
+                      <Button
+                        onClick={() => setLocation(`/vault/${leader.id}`)}
+                        variant="outline"
+                        className="flex items-center gap-2"
+                        title="View vault details"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span className="hidden sm:inline">View</span>
+                      </Button>
                       <Button
                         onClick={() => handleCopyTrading(leader)}
                         className={`font-semibold transition-all duration-300 flex items-center gap-2 ${
@@ -300,16 +321,43 @@ export default function Leaderboard() {
 
                   {/* Vault Info */}
                   <div className="mt-4 pt-4 border-t border-slate-200">
-                    <div className="text-sm text-slate-600">
-                      Vault Size: <span className="font-semibold text-slate-900">
-                        ${(leader.vaultSize / 1000000).toFixed(1)}M
-                      </span>
-                      {isFollowing(leader.id) && (
-                        <span className="ml-4 text-green-600">
-                          • You are following this trader
-                        </span>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <span className="text-slate-600">Vault Size</span>
+                        <p className="font-semibold text-slate-900">
+                          ${(leader.vaultSize / 1000000).toFixed(1)}M
+                        </p>
+                      </div>
+                      {leader.totalAssets && (
+                        <div>
+                          <span className="text-slate-600">Total Assets</span>
+                          <p className="font-semibold text-slate-900">
+                            ${(leader.totalAssets / 1000).toFixed(0)}K
+                          </p>
+                        </div>
+                      )}
+                      {leader.navPerShare && (
+                        <div>
+                          <span className="text-slate-600">NAV per Share</span>
+                          <p className="font-semibold text-blue-600">
+                            ${leader.navPerShare.toFixed(4)}
+                          </p>
+                        </div>
+                      )}
+                      {leader.performanceFee && (
+                        <div>
+                          <span className="text-slate-600">Performance Fee</span>
+                          <p className="font-semibold text-orange-600">
+                            ${leader.performanceFee.toFixed(0)}
+                          </p>
+                        </div>
                       )}
                     </div>
+                    {isFollowing(leader.id) && (
+                      <p className="mt-2 text-green-600 text-sm">
+                        ✓ You are following this trader
+                      </p>
+                    )}
                   </div>
                 </div>
               </Card>

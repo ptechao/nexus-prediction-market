@@ -8,6 +8,7 @@ import { Navigation } from "./components/Navigation";
 import Home from "./pages/Home";
 import Markets from "./pages/Markets";
 import Leaderboard from "./pages/Leaderboard";
+import VaultDetails from "./pages/VaultDetails";
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
@@ -22,10 +23,11 @@ function Router() {
     <>
       <Navigation />
       <Switch>
-        <Route path={"/"} component={Home} />
-        <Route path={"/markets"} component={Markets} />
-        <Route path={"/leaderboard"} component={Leaderboard} />
-        <Route path={"/404"} component={NotFound} />
+        <Route path="/" component={Home} />
+        <Route path="/markets" component={Markets} />
+        <Route path="/leaderboard" component={Leaderboard} />
+        <Route path="/vault/:id" component={VaultDetails} />
+        <Route path="/404" component={NotFound} />
         {/* Final fallback route */}
         <Route component={NotFound} />
       </Switch>

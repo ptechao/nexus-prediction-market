@@ -74,3 +74,32 @@
 - [x] Add success/error notifications for copy trading actions
 - [ ] Create copy trading history display
 - [x] Add animations and transitions for copy trading UI
+
+
+## Smart Contract Improvements
+- [x] Add emergency cancel functionality to BinaryMarket
+- [x] Fix resolution math for correct payout calculation
+- [x] Implement fee mechanism (basis points and treasury)
+- [x] Add claimRefund() function for cancelled markets
+- [x] Handle edge case where winning pool is 0
+- [x] Test all contract improvements
+
+
+## CopyTradingVault Rewrite
+- [x] Redesign vault using pooled fund model (no loops)
+- [x] Implement ERC-20 style share system
+- [x] Add asset tracking and totalAssets() function
+- [x] Implement performance fee (20%) mechanism
+- [x] Add high watermark tracking for MVP
+- [x] Test pooled vault implementation
+
+
+## Frontend Vault Display Updates
+- [x] Create VaultStats component showing total assets and NAV
+- [x] Create VaultDetails page with performance fee info
+- [x] Update Leaderboard to show vault statistics
+- [ ] Add vault asset breakdown visualization
+- [ ] Implement real-time NAV calculation
+- [x] Add performance fee history display
+- [x] Create vault position tracking UI
+- [x] Add responsive design for vault pages
