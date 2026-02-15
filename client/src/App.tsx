@@ -4,17 +4,32 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { Navigation } from "./components/Navigation";
 import Home from "./pages/Home";
+import Markets from "./pages/Markets";
+import Leaderboard from "./pages/Leaderboard";
+import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { WagmiProvider } from 'wagmi';
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+import { web3Config } from "./lib/web3Config";
+import '@rainbow-me/rainbowkit/styles.css';
+
+const queryClient = new QueryClient();
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
+    <>
+      <Navigation />
+      <Switch>
+        <Route path={"/"} component={Home} />
+        <Route path={"/markets"} component={Markets} />
+        <Route path={"/leaderboard"} component={Leaderboard} />
+        <Route path={"/404"} component={NotFound} />
+        {/* Final fallback route */}
+        <Route component={NotFound} />
+      </Switch>
+    </>
   );
 }
 
@@ -26,15 +41,21 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
+      <WagmiProvider config={web3Config}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider>
+            <ThemeProvider
+              defaultTheme="light"
+              // switchable
+            >
+              <TooltipProvider>
+                <Toaster />
+                <Router />
+              </TooltipProvider>
+            </ThemeProvider>
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
     </ErrorBoundary>
   );
 }
