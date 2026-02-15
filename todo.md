@@ -110,6 +110,7 @@
 - [x] Fix nested <a> tag error on homepage (React DOM validation error)
 - [x] Hotfix: Force display hardcoded mock market data on Markets page
 - [x] Hotfix: Make homepage directly render MarketList with mock data cards
+- [x] Hotfix: Switch to dark crypto theme and ensure cards render unconditionally
 
 
 ## Phase 2: Smart Contract Integration

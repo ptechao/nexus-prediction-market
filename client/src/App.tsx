@@ -47,7 +47,7 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider>
             <ThemeProvider
-              defaultTheme="light"
+              defaultTheme="dark"
               // switchable
             >
               <TooltipProvider>
