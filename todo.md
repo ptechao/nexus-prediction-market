@@ -129,3 +129,11 @@
 - [x] Implement buyNo with useWriteContract
 - [x] Add transaction confirmation handling
 - [x] Add error handling and retry logic
+
+
+## Mock Market Data for Demo
+- [x] Create mockMarkets.ts with sample market data
+- [x] Create useMarkets hook for market data management
+- [x] Create Market List page with mock data display
+- [x] Add market card component with odds visualization
+- [x] Implement betting flow with mock data
