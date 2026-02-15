@@ -103,3 +103,7 @@
 - [x] Add performance fee history display
 - [x] Create vault position tracking UI
 - [x] Add responsive design for vault pages
+
+
+## Bug Fixes
+- [x] Fix "process is not defined" error in web3Config.ts
