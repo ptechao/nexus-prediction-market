@@ -156,3 +156,12 @@
 - [x] Display local pool odds instead of Polymarket odds
 - [ ] Implement market creation UI
 - [x] Test Shadow Market integration
+
+
+## Internationalization (i18n) Support
+- [x] Install and configure next-intl
+- [x] Create translation files (en.json, zh-TW.json, es.json)
+- [x] Translate key UI elements
+- [x] Implement language switcher in navbar
+- [x] Create market title translation utility
+- [x] Test i18n functionality
