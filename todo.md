@@ -146,3 +146,13 @@
 - [x] Implement demo mode for betting
 - [x] Add error handling and fallback to mock data
 - [x] Test real-time data fetching
+
+
+## Shadow Market Mode
+- [x] Create Polymarket data sync system
+- [x] Implement local contract mapping mechanism
+- [x] Add contract deployment automation
+- [x] Update useNexus to fetch Polymarket metadata
+- [x] Display local pool odds instead of Polymarket odds
+- [ ] Implement market creation UI
+- [x] Test Shadow Market integration
