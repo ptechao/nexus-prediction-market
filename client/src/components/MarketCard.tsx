@@ -10,6 +10,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useLocation } from 'wouter';
 
 // ─── Market interface (matches server NexusMarket) ─────────────────────
 export interface Market {
@@ -69,23 +70,30 @@ const CATEGORY_COLORS: Record<string, string> = {
 export const getCategoryColor = (category: string) =>
   CATEGORY_COLORS[category] || CATEGORY_COLORS.General;
 
-// ─── MarketCard Component ──────────────────────────────────────────────
+// ─── MarketCard Component ────────────────────────────────────────────────────
 export function MarketCard({ market }: { market: Market }) {
-  const handleBet = (side: 'yes' | 'no') => {
+  const [, navigate] = useLocation();
+
+  const handleBet = (side: 'yes' | 'no', e: React.MouseEvent) => {
+    e.stopPropagation();
     toast.success(
       `Bet ${side.toUpperCase()} on "${market.title}" — connect wallet to confirm.`
     );
   };
 
+  const handleCardClick = () => {
+    navigate(`/markets/${market.id}`);
+  };
+
   return (
     <div
-      className={`group relative overflow-hidden rounded-xl bg-slate-800/80 border transition-all duration-300 hover:shadow-xl hover:scale-[1.02] ${
+      onClick={handleCardClick}
+      className={`group relative overflow-hidden rounded-xl bg-slate-800/80 border transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer ${
         market.isTrending
           ? 'border-orange-500/30 hover:border-orange-400/50 hover:shadow-orange-500/10'
           : 'border-slate-700/50 hover:border-cyan-500/50 hover:shadow-cyan-500/10'
       }`}
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+    >     <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
       {/* Header */}
       <div className="relative px-5 py-3 flex items-center justify-between border-b border-slate-700/50 bg-slate-800/50">
@@ -153,14 +161,14 @@ export function MarketCard({ market }: { market: Market }) {
         {/* Bet Buttons */}
         <div className="grid grid-cols-2 gap-3 mb-5">
           <Button
-            onClick={() => handleBet('yes')}
+            onClick={(e) => handleBet('yes', e)}
             className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-5 text-base transition-all duration-200 hover:shadow-lg hover:shadow-emerald-500/30 border-0"
           >
             <TrendingUp className="w-4 h-4 mr-1.5" />
             Bet Yes
           </Button>
           <Button
-            onClick={() => handleBet('no')}
+            onClick={(e) => handleBet('no', e)}
             className="bg-red-600 hover:bg-red-500 text-white font-bold py-5 text-base transition-all duration-200 hover:shadow-lg hover:shadow-red-500/30 border-0"
           >
             <TrendingDown className="w-4 h-4 mr-1.5" />
@@ -207,6 +215,7 @@ export function MarketCard({ market }: { market: Market }) {
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-slate-500 hover:text-cyan-400 transition-colors"
+              onClick={(e) => e.stopPropagation()}
             >
               View on Polymarket →
             </a>

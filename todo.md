@@ -183,3 +183,11 @@
 - [x] Add Google Fonts for CJK and Thai character support
 - [x] Test all Asian language displays
 - [x] Verify character rendering across browsers
+- [x] Add backend tRPC route to fetch single market by ID
+- [x] Create MarketDetail page component with full trading info
+- [x] Add /markets/:id route in App.tsx
+- [x] Make MarketCard clickable to navigate to detail page
+- [x] Add tests for market detail feature
+- [x] Add Recharts price history chart to market detail page
+- [x] Add trading panel with Buy Yes/No tabs, USDC input, and estimated returns
+- [x] Fix MarketCard.tsx syntax error from merge

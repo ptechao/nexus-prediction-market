@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { Navigation } from "./components/Navigation";
 import Home from "./pages/Home";
 import Markets from "./pages/Markets";
+import MarketDetail from "./pages/MarketDetail";
 import Leaderboard from "./pages/Leaderboard";
 import VaultDetails from "./pages/VaultDetails";
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
@@ -25,6 +26,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/markets" component={Markets} />
+        <Route path="/markets/:id" component={MarketDetail} />
         <Route path="/leaderboard" component={Leaderboard} />
         <Route path="/vault/:id" component={VaultDetails} />
         <Route path="/404" component={NotFound} />

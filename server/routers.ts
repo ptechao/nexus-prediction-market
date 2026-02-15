@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { fetchTopMarkets, fetchMarketsByTag } from "./polymarket";
+import { fetchTopMarkets, fetchMarketsByTag, fetchMarketById } from "./polymarket";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -26,6 +26,13 @@ export const appRouter = router({
       .query(async ({ input }) => {
         const limit = input?.limit ?? 10;
         return fetchTopMarkets(limit);
+      }),
+
+    /** Fetch a single market by ID */
+    byId: publicProcedure
+      .input(z.object({ id: z.string() }))
+      .query(async ({ input }) => {
+        return fetchMarketById(input.id);
       }),
 
     /** Fetch markets filtered by tag */

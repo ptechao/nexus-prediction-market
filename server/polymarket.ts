@@ -153,6 +153,56 @@ function mapEventToMarket(event: PolymarketEvent): NexusMarket | null {
   };
 }
 
+/** Extended detail for a single market (includes sub-markets) */
+export interface NexusMarketDetail extends NexusMarket {
+  fullDescription: string;
+  startDate: string;
+  volume1mo: number;
+  tags: string[];
+  subMarkets: {
+    question: string;
+    yesOdds: number;
+    noOdds: number;
+    volume: number;
+    active: boolean;
+    image: string | null;
+  }[];
+  resolutionSource: string;
+  commentCount: number;
+  isActive: boolean;
+  isClosed: boolean;
+}
+
+function mapEventToMarketDetail(event: PolymarketEvent): NexusMarketDetail | null {
+  const base = mapEventToMarket(event);
+  if (!base) return null;
+
+  const subMarkets = (event.markets || []).map((m) => {
+    const odds = parseOutcomePrices(m.outcomePrices);
+    return {
+      question: m.question,
+      yesOdds: odds.yes,
+      noOdds: odds.no,
+      volume: m.volumeNum || 0,
+      active: m.active,
+      image: m.image,
+    };
+  });
+
+  return {
+    ...base,
+    fullDescription: event.description || '',
+    startDate: event.startDate || '',
+    volume1mo: event.volume1mo || 0,
+    tags: (event.tags || []).map((t) => t.label),
+    subMarkets,
+    resolutionSource: (event as any).resolutionSource || '',
+    commentCount: event.commentCount || 0,
+    isActive: event.active,
+    isClosed: event.closed,
+  };
+}
+
 // ─── API Fetch ─────────────────────────────────────────────────────────
 
 const POLYMARKET_API_BASE = 'https://gamma-api.polymarket.com';
@@ -178,6 +228,23 @@ export async function fetchTopMarkets(limit = 10): Promise<NexusMarket[]> {
     .filter((m): m is NexusMarket => m !== null);
 
   return markets;
+}
+
+export async function fetchMarketById(id: string): Promise<NexusMarketDetail | null> {
+  const url = `${POLYMARKET_API_BASE}/events/${id}`;
+
+  const response = await fetch(url, {
+    headers: { 'Accept': 'application/json' },
+    signal: AbortSignal.timeout(10000),
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) return null;
+    throw new Error(`Polymarket API error: ${response.status} ${response.statusText}`);
+  }
+
+  const event = (await response.json()) as PolymarketEvent;
+  return mapEventToMarketDetail(event);
 }
 
 export async function fetchMarketsByTag(tag: string, limit = 10): Promise<NexusMarket[]> {
