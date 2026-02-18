@@ -208,7 +208,8 @@ function mapEventToMarketDetail(event: PolymarketEvent): NexusMarketDetail | nul
 const POLYMARKET_API_BASE = 'https://gamma-api.polymarket.com';
 
 export async function fetchTopMarkets(limit = 10): Promise<NexusMarket[]> {
-  const url = `${POLYMARKET_API_BASE}/events?limit=${limit}&order=volume&ascending=false&active=true`;
+  const fetchLimit = limit * 3;
+  const url = `${POLYMARKET_API_BASE}/events?limit=${fetchLimit}&order=volume&ascending=false`;
 
   const response = await fetch(url, {
     headers: {
@@ -222,10 +223,22 @@ export async function fetchTopMarkets(limit = 10): Promise<NexusMarket[]> {
   }
 
   const events = (await response.json()) as PolymarketEvent[];
+  const now = new Date();
+  const minEndDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
   const markets = events
+    .filter(event => {
+      if (!event.active || event.closed) return false;
+      const endDate = new Date(event.endDate);
+      if (endDate < minEndDate) return false;
+      const hasActiveMarket = (event.markets || []).some(m => m.active);
+      if (!hasActiveMarket) return false;
+      if ((event.volume || 0) < 100) return false;
+      return true;
+    })
     .map(mapEventToMarket)
-    .filter((m): m is NexusMarket => m !== null);
+    .filter((m): m is NexusMarket => m !== null)
+    .slice(0, limit);
 
   return markets;
 }
@@ -248,7 +261,8 @@ export async function fetchMarketById(id: string): Promise<NexusMarketDetail | n
 }
 
 export async function fetchMarketsByTag(tag: string, limit = 10): Promise<NexusMarket[]> {
-  const url = `${POLYMARKET_API_BASE}/events?limit=${limit}&order=volume&ascending=false&active=true&tag=${encodeURIComponent(tag)}`;
+  const fetchLimit = limit * 3;
+  const url = `${POLYMARKET_API_BASE}/events?limit=${fetchLimit}&order=volume&ascending=false&tag=${encodeURIComponent(tag)}`;
 
   const response = await fetch(url, {
     headers: {
@@ -262,8 +276,20 @@ export async function fetchMarketsByTag(tag: string, limit = 10): Promise<NexusM
   }
 
   const events = (await response.json()) as PolymarketEvent[];
+  const now = new Date();
+  const minEndDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
   return events
+    .filter(event => {
+      if (!event.active || event.closed) return false;
+      const endDate = new Date(event.endDate);
+      if (endDate < minEndDate) return false;
+      const hasActiveMarket = (event.markets || []).some(m => m.active);
+      if (!hasActiveMarket) return false;
+      if ((event.volume || 0) < 100) return false;
+      return true;
+    })
     .map(mapEventToMarket)
-    .filter((m): m is NexusMarket => m !== null);
+    .filter((m): m is NexusMarket => m !== null)
+    .slice(0, limit);
 }

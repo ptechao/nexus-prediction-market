@@ -191,3 +191,9 @@
 - [x] Add Recharts price history chart to market detail page
 - [x] Add trading panel with Buy Yes/No tabs, USDC input, and estimated returns
 - [x] Fix MarketCard.tsx syntax error from merge
+
+## Polymarket Data Quality Fix
+- [x] Filter out old/expired 2024 markets from API results
+- [x] Optimize API query to fetch more active and recent markets
+- [x] Ensure only currently active markets are displayed
+- [x] Increase market count and diversity of categories

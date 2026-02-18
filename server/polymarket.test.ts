@@ -12,8 +12,8 @@ const MOCK_POLYMARKET_RESPONSE = [
     volume: 3686335059.295466,
     volume1wk: 50000000,
     volume1mo: 200000000,
-    endDate: '2024-11-05T12:00:00Z',
-    startDate: '2024-01-01T00:00:00Z',
+    endDate: '2026-11-05T12:00:00Z',
+    startDate: '2025-01-01T00:00:00Z',
     active: true,
     closed: false,
     featured: true,
@@ -45,8 +45,8 @@ const MOCK_POLYMARKET_RESPONSE = [
     volume: 1712132663.96,
     volume1wk: 6823722.84,
     volume1mo: 14755795.85,
-    endDate: '2025-06-23T12:00:00Z',
-    startDate: '2024-09-24T00:00:00Z',
+    endDate: '2026-06-23T12:00:00Z',
+    startDate: '2025-09-24T00:00:00Z',
     active: true,
     closed: false,
     featured: false,
@@ -139,7 +139,7 @@ describe('Polymarket API Integration', () => {
     expect(nba.isTrending).toBe(true); // volume1wk > 1M
   });
 
-  it('fetchTopMarkets passes correct URL parameters', async () => {
+  it('fetchTopMarkets passes correct URL parameters with increased fetch limit', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve([]),
@@ -151,10 +151,9 @@ describe('Polymarket API Integration', () => {
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
     const calledUrl = mockFetch.mock.calls[0][0] as string;
-    expect(calledUrl).toContain('limit=15');
+    expect(calledUrl).toContain('limit=45'); // 15 * 3 for filtering
     expect(calledUrl).toContain('order=volume');
     expect(calledUrl).toContain('ascending=false');
-    expect(calledUrl).toContain('active=true');
   });
 
   it('fetchTopMarkets throws on non-OK response', async () => {
@@ -213,7 +212,7 @@ describe('Polymarket API Integration', () => {
     expect(markets[0].eventType).toBe('other');
   });
 
-  it('fetchMarketsByTag includes tag parameter in URL', async () => {
+  it('fetchMarketsByTag includes tag parameter with increased fetch limit', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve([]),
@@ -225,7 +224,7 @@ describe('Polymarket API Integration', () => {
 
     const calledUrl = mockFetch.mock.calls[0][0] as string;
     expect(calledUrl).toContain('tag=politics');
-    expect(calledUrl).toContain('limit=5');
+    expect(calledUrl).toContain('limit=15'); // 5 * 3 for filtering
   });
 
   it('estimates participants from volume when commentCount is low', async () => {
@@ -264,5 +263,45 @@ describe('Polymarket API Integration', () => {
     const markets = await fetchTopMarkets();
 
     expect(markets[0].description.length).toBe(300);
+  });
+
+  it('filters out expired events (end date < 24h from now)', async () => {
+    const expiredEvent = {
+      ...MOCK_POLYMARKET_RESPONSE[0],
+      id: 'expired-1',
+      endDate: new Date(Date.now() - 1000).toISOString(), // Already ended
+    };
+
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve([expiredEvent, MOCK_POLYMARKET_RESPONSE[1]]),
+    }) as any;
+
+    const { fetchTopMarkets } = await import('./polymarket');
+    const markets = await fetchTopMarkets();
+
+    // Should only return NBA market, not the expired one
+    expect(markets.length).toBe(1);
+    expect(markets[0].id).toBe('100200');
+  });
+
+  it('filters out low-volume markets (< $100)', async () => {
+    const lowVolumeEvent = {
+      ...MOCK_POLYMARKET_RESPONSE[0],
+      id: 'low-vol-1',
+      volume: 50, // Less than 100
+    };
+
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve([lowVolumeEvent, MOCK_POLYMARKET_RESPONSE[1]]),
+    }) as any;
+
+    const { fetchTopMarkets } = await import('./polymarket');
+    const markets = await fetchTopMarkets();
+
+    // Should only return NBA market, not the low-volume one
+    expect(markets.length).toBe(1);
+    expect(markets[0].id).toBe('100200');
   });
 });
