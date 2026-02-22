@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'wouter';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { TrendingUp, Users, Home } from 'lucide-react';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 export function Navigation() {
   const [location] = useLocation();
@@ -45,8 +46,9 @@ export function Navigation() {
             </Link>
           </div>
 
-          {/* Wallet Connection */}
-          <div className="flex items-center gap-4">
+          {/* Wallet Connection & Language Switcher */}
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <ConnectButton />
           </div>
         </div>
