@@ -2,9 +2,13 @@ import { Link, useLocation } from 'wouter';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { TrendingUp, Users, Home } from 'lucide-react';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { useLanguageContext } from '@/contexts/LanguageContext';
+import messages from '../../../messages';
 
 export function Navigation() {
   const [location] = useLocation();
+  const { language } = useLanguageContext();
+  const t = (messages as Record<string, any>)[language] || messages.en;
 
   const isActive = (path: string) => location === path;
 
@@ -26,7 +30,7 @@ export function Navigation() {
                 : 'text-slate-400 hover:text-white'
             }`}>
               <Home className="w-4 h-4" />
-              Home
+              {t.navigation.home}
             </Link>
             <Link href="/markets" className={`flex items-center gap-2 font-medium transition-colors ${
               isActive('/markets') 
@@ -34,7 +38,7 @@ export function Navigation() {
                 : 'text-slate-400 hover:text-white'
             }`}>
               <TrendingUp className="w-4 h-4" />
-              Markets
+              {t.navigation.markets}
             </Link>
             <Link href="/leaderboard" className={`flex items-center gap-2 font-medium transition-colors ${
               isActive('/leaderboard') 
@@ -42,7 +46,7 @@ export function Navigation() {
                 : 'text-slate-400 hover:text-white'
             }`}>
               <Users className="w-4 h-4" />
-              Leaderboard
+              {t.navigation.leaderboard}
             </Link>
           </div>
 

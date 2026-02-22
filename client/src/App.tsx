@@ -4,6 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 import { Navigation } from "./components/Navigation";
 import Home from "./pages/Home";
 import Markets from "./pages/Markets";
@@ -21,19 +22,16 @@ const queryClient = new QueryClient();
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
-    <>
-      <Navigation />
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/markets" component={Markets} />
-        <Route path="/markets/:id" component={MarketDetail} />
-        <Route path="/leaderboard" component={Leaderboard} />
-        <Route path="/vault/:id" component={VaultDetails} />
-        <Route path="/404" component={NotFound} />
-        {/* Final fallback route */}
-        <Route component={NotFound} />
-      </Switch>
-    </>
+    <Switch>
+      <Route path="/" component={Home} />
+      <Route path="/markets" component={Markets} />
+      <Route path="/markets/:id" component={MarketDetail} />
+      <Route path="/leaderboard" component={Leaderboard} />
+      <Route path="/vault/:id" component={VaultDetails} />
+      <Route path="/404" component={NotFound} />
+      {/* Final fallback route */}
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 
@@ -48,15 +46,18 @@ function App() {
       <WagmiProvider config={web3Config}>
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider>
-            <ThemeProvider
-              defaultTheme="dark"
-              // switchable
-            >
-              <TooltipProvider>
-                <Toaster />
-                <Router />
-              </TooltipProvider>
-            </ThemeProvider>
+            <LanguageProvider>
+              <ThemeProvider
+                defaultTheme="dark"
+                // switchable
+              >
+                <TooltipProvider>
+                  <Toaster />
+                  <Navigation />
+                  <Router />
+                </TooltipProvider>
+              </ThemeProvider>
+            </LanguageProvider>
           </RainbowKitProvider>
         </QueryClientProvider>
       </WagmiProvider>

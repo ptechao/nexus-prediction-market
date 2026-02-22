@@ -4,7 +4,8 @@
  * Includes: English, Traditional Chinese, Simplified Chinese, Japanese, Korean, Thai, Spanish
  */
 
-import { useLanguage, getLanguageFlag, getLanguageName, getLanguageNativeName } from '@/hooks/useLanguage';
+import { useLanguageContext } from '@/contexts/LanguageContext';
+import { getLanguageFlag, getLanguageName, getLanguageNativeName } from '@/hooks/useLanguage';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -17,7 +18,16 @@ import { Globe } from 'lucide-react';
 type SupportedLanguage = 'en' | 'zh-TW' | 'zh-CN' | 'ja' | 'ko' | 'th' | 'es';
 
 export function LanguageSwitcher() {
-  const { language, setLanguage, supportedLanguages } = useLanguage();
+  const { language, setLanguage } = useLanguageContext();
+  const supportedLanguages = [
+    { code: 'en' as const, name: 'English', nativeName: 'English' },
+    { code: 'zh-TW' as const, name: 'Traditional Chinese', nativeName: '繁體中文' },
+    { code: 'zh-CN' as const, name: 'Simplified Chinese', nativeName: '简体中文' },
+    { code: 'ja' as const, name: 'Japanese', nativeName: '日本語' },
+    { code: 'ko' as const, name: 'Korean', nativeName: '한국어' },
+    { code: 'th' as const, name: 'Thai', nativeName: 'ไทย' },
+    { code: 'es' as const, name: 'Spanish', nativeName: 'Español' },
+  ];
 
   return (
     <DropdownMenu>
