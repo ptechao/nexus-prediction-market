@@ -197,3 +197,39 @@
 - [x] Optimize API query to fetch more active and recent markets
 - [x] Ensure only currently active markets are displayed
 - [x] Increase market count and diversity of categories
+
+## World Cup 2026 Integration (Phase A)
+- [ ] Create server/data/worldcupMatches.ts with WorldCupMatch interface and 64 matches
+- [ ] Create server/worldcup.ts with mapMatchToMarket and fetchWorldCupMarkets functions
+- [ ] Add markets.worldCup and markets.worldCupById tRPC routes
+- [ ] Update client/components/MarketCard.tsx to display World Cup ★ badge
+- [ ] Update client/pages/Markets.tsx to filter and display World Cup matches
+- [ ] Update client/pages/MarketDetail.tsx to show World Cup match details
+- [ ] Add World Cup filtering logic to Markets page
+- [ ] Write tests for World Cup integration
+- [ ] Update README with World Cup data structure and API integration guide
+
+
+## World Cup AI Prediction Feature
+- [ ] Design AI prediction model based on FIFA rankings and team statistics
+- [ ] Implement backend AI prediction service using LLM
+- [ ] Create tRPC route for AI predictions (markets.worldCupPrediction)
+- [ ] Add prediction confidence score and reasoning explanation
+- [ ] Update MarketDetail component to display AI predictions
+- [ ] Add prediction visualization (gauge, confidence bar, etc.)
+- [ ] Write tests for AI prediction service
+- [ ] Add translations for prediction UI elements
+
+
+## Market Lifecycle Automation (Phase A)
+- [x] Create sports data adapter (apiFootball.ts) with retry logic and rate limiting
+- [x] Implement MarketSeed type and data normalization
+- [x] Create createMarkets.ts cron job for market ingestion
+- [ ] Create resolveMarkets.ts cron job for market resolution
+- [x] Extend Drizzle schema with market status enum and dispute fields
+- [ ] Implement dispute and refund endpoints (admin-only)
+- [ ] Add cancelMarket() and claimRefund() hooks to smart contracts
+- [ ] Update frontend MarketDetail to show dispute/refund UI
+- [ ] Add mock fixtures for testing without API calls
+- [ ] Update README with ENV variables and cron setup
+- [ ] Write integration tests for market lifecycle
